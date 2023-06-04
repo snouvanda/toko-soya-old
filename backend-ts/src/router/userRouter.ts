@@ -8,7 +8,7 @@ export default (router: express.Router) => {
   router.get(
     "/users",
     isAuthenticated,
-    authorizedTo(ROLES.Admin, ROLES.Employee, ROLES.Guest),
+    authorizedTo(ROLES.Admin, ROLES.Employee),
     getAllUsers,
   )
 }

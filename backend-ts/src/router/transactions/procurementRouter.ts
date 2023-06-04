@@ -13,7 +13,7 @@ export default (router: express.Router) => {
   router.post(
     "/procurements",
     isAuthenticated,
-    authorizedTo(ROLES.Admin, ROLES.Employee, ROLES.Guest),
+    authorizedTo(ROLES.Admin, ROLES.Employee),
     createProcurement,
   )
 }
