@@ -2,3 +2,5 @@
 
 detected at userRepo.ts getUserAuthenticationByEmail
 Can't reach database server at `localhost`:`3306`
+
+#2. add manager role

@@ -1,6 +1,10 @@
 import { Request, Response } from "express"
 import { isProcurementInputsValid } from "../../helpers/inputValidationHelper"
 import { ProcurementInput } from "../../types/custom"
+import {
+  createNewProcurement,
+  getNewSqc,
+} from "../../repositories/procurementsRepo"
 
 export const createProcurement = async (req: Request, res: Response) => {
   console.log("")
@@ -49,11 +53,35 @@ export const createProcurement = async (req: Request, res: Response) => {
     console.log("input is valid.")
 
     // Create Procurement
+    //-- get new sqc
+    const newSqc = await getNewSqc(inputs.trxDate)
+    const creator = req.jwtPayload.userId
+
+    const newProcurement = await createNewProcurement({
+      trxDate: inputs.trxDate,
+      sqc: newSqc,
+      supplierId: inputs.supplierId,
+      transaction: inputs.transaction,
+      productId: inputs.productId,
+      quantity: inputs.quantity,
+      unitPrice: inputs.unitPrice,
+      account: inputs.account,
+      loadStatus: inputs.loadStatus,
+      paymentStatus: inputs.paymentStatus,
+      paidAmount: inputs.paidAmount,
+      paidMethod: inputs.paidMethod,
+      paidAmtBank: inputs.paidAmtBank,
+      paidAmtCash: inputs.paidAmtCash,
+      paidAmtAccRcv: inputs.paidAmtAccRcv,
+      references: inputs.references,
+      remarks: inputs.remarks,
+      createdBy: creator,
+    })
+
     // Return respond
-    return res.sendStatus(200)
+    return res.status(200).json(newProcurement)
   } catch (error) {
     console.log(error)
     return res.sendStatus(500)
   }
-  return {}
 }

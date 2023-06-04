@@ -71,3 +71,24 @@ export interface ProcurementInput {
   references?: string
   remarks?: string
 }
+
+export interface ProcurementData {
+  trxDate: string
+  sqc: number
+  supplierId: string
+  transaction: number
+  productId: number
+  quantity: number
+  unitPrice: number
+  account: number
+  loadStatus: number
+  paymentStatus: number
+  paidAmount: number
+  paidMethod: number
+  paidAmtBank: number
+  paidAmtCash: number
+  paidAmtAccRcv: number
+  references?: string
+  remarks?: string
+  createdBy: string
+}
