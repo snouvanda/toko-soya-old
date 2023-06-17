@@ -16,3 +16,8 @@ export const USER_APPROVAL: LookupList = {
   Approved: 1,
   Denied: 4,
 }
+
+export const TRANSACTION: LookupList = {
+  Beli: 1,
+  Pinjam: 2,
+}

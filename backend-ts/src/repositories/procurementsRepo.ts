@@ -1,15 +1,15 @@
-import { PrismaClient, Prisma } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 import { merge } from "lodash"
-import {
-  activeRowCriteria,
-  deletedRowCriteria,
-  metaFields,
-} from "./recordConfig"
-import { ProcurementData, ProcurementInput } from "../types/custom"
+import { activeRowCriteria } from "./recordConfig"
+import { ProcurementData } from "../types/custom"
+import { LookupField as LF, LookupFieldAsync as LFA } from "../enums/dbEnums"
+import { lookupValAsyncToApp, lookupValToApp } from "./dbLookups"
 
 const prisma = new PrismaClient()
 
 // FIELDS SELECTION
+
+// UTILITY FUNCTIONS
 
 // DB MANIPULATION FUNCTIONS
 
@@ -18,7 +18,6 @@ export const getNewSqc = async (trxDate: string): Promise<number> => {
     where: merge({ trxDate: { equals: new Date(trxDate) } }, activeRowCriteria),
     select: { id: true },
   })
-  console.log("procurements:", procurements)
   return Object.keys(procurements).length + 1
 }
 
@@ -69,11 +68,56 @@ export const createNewProcurement = async (values: ProcurementData) => {
       paidAmtAccRcv: true,
       references: true,
       remarks: true,
-      createdBy: true,
       createdAt: true,
-      updatedBy: true,
+      createdBy: true,
       updatedAt: true,
+      updatedBy: true,
     },
   })
+  if (procurement) {
+    const procurement_app = {
+      id: procurement.id,
+      trxDate: procurement.trxDate,
+      sqc: procurement.sqc,
+      supplier: {
+        id: procurement.supplierId,
+        alias: await lookupValAsyncToApp(LFA.Supplier, procurement.supplierId),
+      },
+      transaction: lookupValToApp(LF.ProcurementTrx, procurement.transaction),
+      product: {
+        id: procurement.productId,
+        alias: await lookupValAsyncToApp(LFA.Product, procurement.productId),
+      },
+      quantity: procurement.quantity,
+      unitPrice: procurement.unitPrice,
+      account: {
+        id: procurement.account,
+        account: await lookupValAsyncToApp(
+          LFA.StockAccount,
+          procurement.account,
+        ),
+      },
+      logicalStock: procurement.logicalStock,
+      physicalStock: procurement.physicalStock,
+      loadStatus: lookupValToApp(LF.ShipmentLoadStatus, procurement.loadStatus),
+      paymentStatus: lookupValToApp(
+        LF.PaymentStatus,
+        procurement.paymentStatus,
+      ),
+      paidAmount: procurement.paidAmount,
+      paidMethod: lookupValToApp(LF.PaymentMethod, procurement.paidMethod),
+      paidAmtBank: procurement.paidAmtBank,
+      paidAmtCash: procurement.paidAmtCash,
+      paidAmtAccRcv: procurement.paidAmtAccRcv,
+      references: procurement.references,
+      remarks: procurement.remarks,
+      createdAt: procurement.createdAt,
+      createdBy: {
+        userId: procurement.createdBy,
+        email: await lookupValAsyncToApp(LFA.User, procurement.createdBy),
+      },
+    }
+    return procurement_app
+  }
   return procurement
 }

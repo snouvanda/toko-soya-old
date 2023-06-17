@@ -1,6 +1,4 @@
-import { findKey } from "lodash"
 import { RoleList } from "../types/custom"
-import { TargetValue } from "../enums/generalEnums"
 
 // this value will be use in jwt payload to disguise user role
 // keys based on enumRole in db schema

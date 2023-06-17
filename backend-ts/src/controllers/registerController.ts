@@ -7,6 +7,8 @@ import {
   getUserExistanceByEmail,
 } from "../repositories/usersRepo"
 import { toPropercase } from "../helpers/stringHelper"
+import { UserApproval, UserRole, LookupField as LF } from "../enums/dbEnums"
+import { lookupValToDB } from "../repositories/dbLookups"
 
 export const registerUser = async (req: Request, res: Response) => {
   console.log("")
@@ -72,13 +74,13 @@ export const registerUser = async (req: Request, res: Response) => {
       email: email,
       name: name,
       phone: phone,
-      requestedRole: requestedRole,
-      role: "guest",
+      requestedRole: lookupValToDB(LF.UserRole, requestedRole),
+      role: UserRole.Guest,
       isActive: true,
-      regApproval: "pending",
+      regApproval: UserApproval.Pending,
       salt: salt,
       password: hashedPassword,
-      createdBy: null,
+      createdBy: process.env.DEFAULT_CREATOR,
     })
 
     // return respond

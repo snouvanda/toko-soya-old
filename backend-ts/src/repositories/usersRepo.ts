@@ -1,14 +1,14 @@
-import { PrismaClient, Prisma } from "@prisma/client"
-import { UserRole, UserApproval } from "../enums/dbEnums"
+import { PrismaClient } from "@prisma/client"
 import { merge } from "lodash"
-import { TargetValue } from "../enums/generalEnums"
-import { USER_ROLES, USER_APPROVAL } from "./lookup_list"
 import { GotUser } from "types/custom"
+import { activeRowCriteria, metaFields } from "./recordConfig"
 import {
-  activeRowCriteria,
-  deletedRowCriteria,
-  metaFields,
-} from "./recordConfig"
+  UserRole,
+  UserApproval,
+  LookupField as LF,
+  LookupFieldAsync as LFA,
+} from "../enums/dbEnums"
+import { lookupValAsyncToApp, lookupValToApp } from "./dbLookups"
 
 const prisma = new PrismaClient()
 const defaultCreator: string = process.env.DEFAULT_CREATOR || "enviro-dv"
@@ -38,38 +38,6 @@ const credentialFields = {
 
 // UTILITY FUNCTIONS
 
-const UserRoleToDB = (role: string): number => {
-  return USER_ROLES[role]
-}
-
-const UserRoleToApp = (role: number): string => {
-  let result = ""
-  Object.entries(USER_ROLES).find(([key, value]) => {
-    if (value === role) {
-      result = key
-      return true
-    }
-    return false
-  })
-  return result
-}
-
-const UserApprovalToDB = (approval: string): number => {
-  return USER_APPROVAL[approval]
-}
-
-const UserApprovalToApp = (approval: number): string => {
-  let result = ""
-  Object.entries(USER_APPROVAL).find(([key, value]) => {
-    if (value === approval) {
-      result = key
-      return true
-    }
-    return false
-  })
-  return result
-}
-
 // DB MANIPULATION FUNCTIONS
 
 export const createNewUser = async (values: Record<string, any>) => {
@@ -80,6 +48,7 @@ export const createNewUser = async (values: Record<string, any>) => {
     requestedRole,
     role,
     isActive,
+    regApproval,
     salt,
     password,
     createdBy,
@@ -93,15 +62,18 @@ export const createNewUser = async (values: Record<string, any>) => {
     creator = createdBy
   }
 
+  console.log("requestedRole → ", requestedRole)
+  console.log("role → ", role)
+
   const user = await prisma.users.create({
     data: {
       email: email,
       name: name,
       phone: phone,
-      requestedRole: UserRoleToDB(requestedRole),
-      role: UserRoleToDB(role),
+      requestedRole: requestedRole,
+      role: role,
       isActive: isActive,
-      regApproval: UserApproval.Pending,
+      regApproval: regApproval,
       salt: salt,
       password: password,
       createdBy: creator,
@@ -118,15 +90,16 @@ export const createNewUser = async (values: Record<string, any>) => {
     },
   })
   if (user) {
+    console.log("new user{} → ", user)
     const user_app = {
       id: user.id,
       email: user.email,
       name: user.name,
       phone: user.phone,
-      requestedRole: UserRoleToApp(user.requestedRole),
-      role: UserRoleToApp(user.role),
+      requestedRole: lookupValToApp(LF.UserRole, user.requestedRole),
+      role: lookupValToApp(LF.UserRole, user.role),
       isActive: user.isActive,
-      regApproval: UserApprovalToApp(user.regApproval),
+      regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
     }
     return user_app
   }
@@ -139,14 +112,19 @@ export const getUsers = async (): Promise<GotUser[] | {}> => {
     select: merge(identityFields, infoFields, privilegeFields, metaFields),
   })
   if (users) {
-    let users_app = users.map((user) => {
-      return {
-        ...user,
-        requestedRole: UserRoleToApp(user.requestedRole),
-        role: UserRoleToApp(user.role),
-        regApproval: UserApprovalToApp(user.regApproval),
-      }
-    })
+    console.log("users {} → ", users)
+    let users_app = await Promise.all(
+      users.map(async (user) => {
+        return {
+          ...user,
+          requestedRole: lookupValToApp(LF.UserRole, user.requestedRole),
+          role: lookupValToApp(LF.UserRole, user.role),
+          regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
+          createdBy: await lookupValAsyncToApp(LFA.User, user.createdBy),
+        }
+      }),
+    )
+    console.log("users_app → ", users_app)
     return users_app
   }
   return {}
@@ -155,6 +133,14 @@ export const getUsers = async (): Promise<GotUser[] | {}> => {
 export const getUserExistanceByEmail = async (email: string) => {
   const user = await prisma.users.findFirst({
     where: merge({ email: email }, activeRowCriteria),
+    select: identityFields,
+  })
+  return user
+}
+
+export const getUserExistanceById = async (id: string) => {
+  const user = await prisma.users.findFirst({
+    where: merge({ id: id }, activeRowCriteria),
     select: identityFields,
   })
   return user
@@ -180,10 +166,19 @@ export const getUserAuthenticationByEmail = async (email: string) => {
       user_app = {
         id: user.id,
         email: user.email,
-        requestedRole: UserRoleToApp(user.requestedRole),
-        role: UserRoleToApp(user.role),
+        // requestedRole: UserRoleToApp(user.requestedRole),
+        requestedRole: lookupValToApp(
+          LF.UserRole,
+          user.requestedRole,
+        ) as unknown as string,
+        // role: UserRoleToApp(user.role),
+        role: lookupValToApp(LF.UserRole, user.role) as unknown as string,
         isActive: user.isActive,
-        regApproval: UserRoleToApp(user.regApproval),
+        // regApproval: UserRoleToApp(user.regApproval),
+        regApproval: lookupValToApp(
+          LF.UserApproval,
+          user.regApproval,
+        ) as unknown as string,
         salt: user.salt,
         password: user.password,
       }
@@ -233,10 +228,19 @@ export const getUserByRefreshToken = async (refreshToken: string) => {
     user_app = {
       id: user.id,
       email: user.email,
-      requestedRole: UserRoleToApp(user.requestedRole),
-      role: UserRoleToApp(user.role),
+      // requestedRole: UserRoleToApp(user.requestedRole),
+      requestedRole: lookupValToApp(
+        LF.UserRole,
+        user.requestedRole,
+      ) as unknown as string,
+      // role: UserRoleToApp(user.role),
+      role: lookupValToApp(LF.UserRole, user.role) as unknown as string,
       isActive: user.isActive,
-      regApproval: UserApprovalToApp(user.regApproval),
+      // regApproval: UserApprovalToApp(user.regApproval),
+      regApproval: lookupValToApp(
+        LF.UserApproval,
+        user.regApproval,
+      ) as unknown as string,
     }
   }
   return user_app
@@ -272,14 +276,17 @@ export const getUserRegApprovalAllRoles = async (
     select: merge(identityFields, infoFields, privilegeFields, metaFields),
   })
   if (users) {
-    let users_app = users.map((user) => {
-      return {
-        ...user,
-        requestedRole: UserRoleToApp(user.requestedRole),
-        role: UserRoleToApp(user.role),
-        regApproval: UserApprovalToApp(user.regApproval),
-      }
-    })
+    let users_app = await Promise.all(
+      users.map(async (user) => {
+        return {
+          ...user,
+          requestedRole: lookupValToApp(LF.UserRole, user.requestedRole),
+          role: lookupValToApp(LF.UserRole, user.role),
+          regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
+          createdBy: lookupValAsyncToApp(LFA.User, user.createdBy),
+        }
+      }),
+    )
     return users_app
   }
   return users
@@ -294,14 +301,17 @@ export const getUserRegApprovalByRequestedRole = async (
     select: merge(identityFields, infoFields, privilegeFields, metaFields),
   })
   if (users) {
-    let users_app = users.map((user) => {
-      return {
-        ...user,
-        requestedRole: UserRoleToApp(user.requestedRole),
-        role: UserRoleToApp(user.role),
-        regApproval: UserApprovalToApp(user.regApproval),
-      }
-    })
+    let users_app = await Promise.all(
+      users.map((user) => {
+        return {
+          ...user,
+          requestedRole: lookupValToApp(LF.UserRole, user.requestedRole),
+          role: lookupValToApp(LF.UserRole, user.role),
+          regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
+          createdBy: lookupValAsyncToApp(LFA.User, user.createdBy),
+        }
+      }),
+    )
     return users_app
   }
   return {}

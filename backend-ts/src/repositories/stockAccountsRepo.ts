@@ -1,10 +1,6 @@
-import { PrismaClient, Prisma } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 import { merge } from "lodash"
-import {
-  activeRowCriteria,
-  deletedRowCriteria,
-  metaFields,
-} from "./recordConfig"
+import { activeRowCriteria } from "./recordConfig"
 
 const prisma = new PrismaClient()
 

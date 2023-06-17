@@ -1,3 +1,26 @@
+export enum LookupField {
+  UserRole,
+  UserApproval,
+  ProcurementTrx,
+  ShipmentLoadStatus,
+  PaymentStatus,
+  PaymentMethod,
+  CustomerType,
+  ShippingBillTo,
+  StockAdjustmentTrx,
+  InventoryLogicalReceivedFrom,
+  InventoryLogicalIssuedTo,
+  InventoryPhysicalReceivedFrom,
+  InventoryPhysicalIssuedTo,
+}
+
+export enum LookupFieldAsync {
+  User,
+  Supplier,
+  StockAccount,
+  Product,
+}
+
 export enum UserRole {
   Admin = 1,
   Employee = 2,

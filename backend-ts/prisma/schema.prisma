@@ -26,7 +26,7 @@ model Users {
   requestedRole Int       @default(4) // ref: enum UserRole
   role          Int       @default(4) // ref: enum UserRole
   isActive      Boolean   @default(false)
-  regApproval   Int       @default(0) // ref: enum UserApproval
+  regApproval   Int       @default(1) // ref: enum UserApproval
   salt          String?   @db.VarChar(100)
   password      String    @db.VarChar(100)
   remarks       String?   @db.VarChar(100)
