@@ -27,6 +27,33 @@ export interface GotUser {
   updatedBy: string | null
 }
 
+export interface GotProcurement {
+  id: string
+  trxDate: Date
+  sqc: number
+  supplierId: string
+  transaction: string
+  productId: string
+  quantity: number
+  unitPrice: number
+  account: string
+  logicalStock: number
+  physicalStock: number
+  loadStatus: string
+  paymentStatus: string
+  paidAmount: number
+  paidMethod: string
+  paidAmtBank: number
+  paidAmtCash: number
+  paidAmtAccRcv: number
+  references: string
+  remarks: string
+  createdAt: Date
+  createdBy: string
+  updatedAt: Date | null
+  updatedBy: string | null
+}
+
 export interface DbEnumLookupValidation {
   validation: boolean
   dbValue: number

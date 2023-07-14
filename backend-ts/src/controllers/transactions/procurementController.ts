@@ -4,6 +4,7 @@ import { ProcurementInput } from "../../types/custom"
 import {
   createNewProcurement,
   getNewSqc,
+  getProcurements,
 } from "../../repositories/procurementsRepo"
 
 export const createProcurement = async (req: Request, res: Response) => {
@@ -80,6 +81,20 @@ export const createProcurement = async (req: Request, res: Response) => {
 
     // Return respond
     return res.status(200).json(newProcurement)
+  } catch (error) {
+    console.log(error)
+    return res.sendStatus(500)
+  }
+}
+
+export const getAllProcurements = async (req: Request, res: Response) => {
+  try {
+    const procurements = await getProcurements()
+    if (!procurements) {
+      return res.status(204).json({ message: "No procurements found" })
+    }
+    return res.json(procurements)
+    //
   } catch (error) {
     console.log(error)
     return res.sendStatus(500)
