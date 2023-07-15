@@ -1,11 +1,11 @@
-import { PrismaClient } from "@prisma/client"
-import { merge } from "lodash"
-import { activeRowCriteria } from "./recordConfig"
-import { GotProcurement, ProcurementData } from "../types/custom"
-import { LookupField as LF, LookupFieldAsync as LFA } from "../enums/dbEnums"
-import { lookupValAsyncToApp, lookupValToApp } from "./dbLookups"
+import { PrismaClient } from "@prisma/client";
+import { merge } from "lodash";
+import { activeRowCriteria } from "./recordConfig";
+import { ProcurementData } from "../types/custom";
+import { LookupField as LF, LookupFieldAsync as LFA } from "../enums/dbEnums";
+import { lookupValAsyncToApp, lookupValToApp } from "./dbLookups";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 // FIELDS SELECTION
 
@@ -17,12 +17,12 @@ export const getNewSqc = async (trxDate: string): Promise<number> => {
   const procurements = await prisma.procurements.findMany({
     where: merge({ trxDate: { equals: new Date(trxDate) } }, activeRowCriteria),
     select: { id: true },
-  })
-  return Object.keys(procurements).length + 1
-}
+  });
+  return Object.keys(procurements).length + 1;
+};
 
 export const createNewProcurement = async (values: ProcurementData) => {
-  const data: ProcurementData = values
+  const data: ProcurementData = values;
 
   const procurement = await prisma.procurements.create({
     data: {
@@ -73,7 +73,7 @@ export const createNewProcurement = async (values: ProcurementData) => {
       updatedAt: true,
       updatedBy: true,
     },
-  })
+  });
   if (procurement) {
     const procurement_app = {
       id: procurement.id,
@@ -94,7 +94,7 @@ export const createNewProcurement = async (values: ProcurementData) => {
         id: procurement.account,
         account: await lookupValAsyncToApp(
           LFA.StockAccount,
-          procurement.account,
+          procurement.account
         ),
       },
       logicalStock: procurement.logicalStock,
@@ -102,7 +102,7 @@ export const createNewProcurement = async (values: ProcurementData) => {
       loadStatus: lookupValToApp(LF.ShipmentLoadStatus, procurement.loadStatus),
       paymentStatus: lookupValToApp(
         LF.PaymentStatus,
-        procurement.paymentStatus,
+        procurement.paymentStatus
       ),
       paidAmount: procurement.paidAmount,
       paidMethod: lookupValToApp(LF.PaymentMethod, procurement.paidMethod),
@@ -116,79 +116,8 @@ export const createNewProcurement = async (values: ProcurementData) => {
         userId: procurement.createdBy,
         email: await lookupValAsyncToApp(LFA.User, procurement.createdBy),
       },
-    }
-    return procurement_app
+    };
+    return procurement_app;
   }
-  return procurement
-}
-
-export const getProcurements = async (): Promise<GotProcurement[] | {}> => {
-  const procurements = await prisma.procurements.findMany({
-    where: activeRowCriteria,
-    select: {
-      id: true,
-      trxDate: true,
-      sqc: true,
-      supplierId: true,
-      transaction: true,
-      productId: true,
-      quantity: true,
-      unitPrice: true,
-      account: true,
-      logicalStock: true,
-      physicalStock: true,
-      loadStatus: true,
-      paymentStatus: true,
-      paidAmount: true,
-      paidMethod: true,
-      paidAmtBank: true,
-      paidAmtCash: true,
-      paidAmtAccRcv: true,
-      references: true,
-      remarks: true,
-      createdAt: true,
-      createdBy: true,
-      updatedAt: true,
-      updatedBy: true,
-    },
-  })
-
-  if (procurements) {
-    console.log(">> procurements {} → ", procurements)
-    let procurements_app = await Promise.all(
-      procurements.map(async (procurement) => {
-        return {
-          ...procurement,
-          supplierId: await lookupValAsyncToApp(
-            LFA.Supplier,
-            procurement.supplierId,
-          ),
-          transaction: lookupValToApp(
-            LF.ProcurementTrx,
-            procurement.transaction,
-          ),
-          product: await lookupValAsyncToApp(
-            LFA.Product,
-            procurement.productId,
-          ),
-          account: await lookupValAsyncToApp(
-            LFA.StockAccount,
-            procurement.account,
-          ),
-          loadStatus: lookupValToApp(
-            LF.ShipmentLoadStatus,
-            procurement.loadStatus,
-          ),
-          paymentStatus: lookupValToApp(
-            LF.PaymentMethod,
-            procurement.paidMethod,
-          ),
-          createdBy: await lookupValAsyncToApp(LFA.User, procurement.createdBy),
-        }
-      }),
-    )
-    console.log(">> procurements_app → ", procurements_app)
-    return procurements_app
-  }
-  return {}
-}
+  return procurement;
+};
