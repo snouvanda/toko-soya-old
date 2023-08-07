@@ -1,5 +1,5 @@
-import { CorsOptions } from "cors"
-import { allowedOrigins } from "./allowedOrigins"
+import { CorsOptions } from "cors";
+import { allowedOrigins } from "@/configs/allowedOrigins";
 
 export const corsOptions: CorsOptions = {
   allowedHeaders: [
@@ -13,4 +13,4 @@ export const corsOptions: CorsOptions = {
   methods: "GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE",
   origin: allowedOrigins,
   //preflightContinue: false,
-}
+};

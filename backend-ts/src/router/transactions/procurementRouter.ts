@@ -2,10 +2,10 @@ import express from "express";
 import {
   createProcurement,
   getAllProcurements,
-} from "../../controllers/transactions/procurementController";
-import { isAuthenticated } from "../../middlewares/aunthenticatorMW";
-import { authorizedTo } from "../../middlewares/authorizerMW";
-import { SHIFTED_ROLES as ROLES } from "../../config/roles_list";
+} from "@/controllers/transactions/procurementController";
+import { isAuthenticated } from "@/middlewares/aunthenticatorMW";
+import { authorizedTo } from "@/middlewares/authorizerMW";
+import { SHIFTED_ROLES as ROLES } from "@/configs/roles_list";
 
 export default (router: express.Router) => {
   router.get(

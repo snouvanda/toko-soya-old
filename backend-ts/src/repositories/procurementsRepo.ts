@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { merge } from "lodash";
-import { activeRowCriteria } from "./recordConfig";
-import { ProcurementData, GotProcurement } from "../types/custom";
-import { LookupField as LF, LookupFieldAsync as LFA } from "../enums/dbEnums";
-import { lookupValAsyncToApp, lookupValToApp } from "./dbLookups";
+import { activeRowCriteria } from "@/repositories/recordConfig";
+import { ProcurementData, GotProcurement } from "@/types/custom";
+import { LookupField as LF, LookupFieldAsync as LFA } from "@/enums/dbEnums";
+import { lookupValAsyncToApp, lookupValToApp } from "@/repositories/dbLookups";
 
 const prisma = new PrismaClient();
 

@@ -1,4 +1,4 @@
-import { RoleList } from "../types/custom"
+import { RoleList } from "@/types/custom";
 
 // this value will be use in jwt payload to disguise user role
 // keys based on enumRole in db schema
@@ -10,20 +10,20 @@ export const SHIFTED_ROLES: RoleList = {
   Guest: 7952,
   Shipper: 3125,
   Supplier: 8254,
-}
+};
 
 export const shiftRole = (role: string): number => {
-  return SHIFTED_ROLES[role]
-}
+  return SHIFTED_ROLES[role];
+};
 
 export const unshiftRole = (shiftedRole: number): string => {
-  let result = ""
+  let result = "";
   Object.entries(SHIFTED_ROLES).find(([key, value]) => {
     if (value === shiftedRole) {
-      result = key
-      return true
+      result = key;
+      return true;
     }
-    return false
-  })
-  return result
-}
+    return false;
+  });
+  return result;
+};

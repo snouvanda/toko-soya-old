@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client"
-import { merge } from "lodash"
-import { activeRowCriteria } from "./recordConfig"
+import { PrismaClient } from "@prisma/client";
+import { merge } from "lodash";
+import { activeRowCriteria } from "@/repositories/recordConfig";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 // DB MANIPULATION FUNCTIONS
 
@@ -14,6 +14,6 @@ export const getProductExistanceById = async (productId: number) => {
       alias: true,
       name: true,
     },
-  })
-  return product
-}
+  });
+  return product;
+};

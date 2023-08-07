@@ -1,40 +1,40 @@
-import { PrismaClient } from "@prisma/client"
-import { merge } from "lodash"
-import { GotUser } from "types/custom"
-import { activeRowCriteria, metaFields } from "./recordConfig"
+import { PrismaClient } from "@prisma/client";
+import { merge } from "lodash";
+import { GotUser } from "@/types/custom";
+import { activeRowCriteria, metaFields } from "@/repositories/recordConfig";
 import {
   UserRole,
   UserApproval,
   LookupField as LF,
   LookupFieldAsync as LFA,
-} from "../enums/dbEnums"
-import { lookupValAsyncToApp, lookupValToApp } from "./dbLookups"
+} from "@/enums/dbEnums";
+import { lookupValAsyncToApp, lookupValToApp } from "@/repositories/dbLookups";
 
-const prisma = new PrismaClient()
-const defaultCreator: string = process.env.DEFAULT_CREATOR || "enviro-dv"
+const prisma = new PrismaClient();
+const defaultCreator: string = process.env.DEFAULT_CREATOR || "enviro-dv";
 
 // FIELDS SELECTION
 const identityFields = {
   id: true,
   email: true,
-}
+};
 
 const infoFields = {
   name: true,
   phone: true,
-}
+};
 
 const privilegeFields = {
   requestedRole: true,
   role: true,
   isActive: true,
   regApproval: true,
-}
+};
 
 const credentialFields = {
   salt: true,
   password: true,
-}
+};
 
 // UTILITY FUNCTIONS
 
@@ -52,18 +52,18 @@ export const createNewUser = async (values: Record<string, any>) => {
     salt,
     password,
     createdBy,
-  } = values
+  } = values;
 
-  let creator: string
+  let creator: string;
 
   if (!createdBy) {
-    creator = defaultCreator
+    creator = defaultCreator;
   } else {
-    creator = createdBy
+    creator = createdBy;
   }
 
-  console.log("requestedRole → ", requestedRole)
-  console.log("role → ", role)
+  console.log("requestedRole → ", requestedRole);
+  console.log("role → ", role);
 
   const user = await prisma.users.create({
     data: {
@@ -88,9 +88,9 @@ export const createNewUser = async (values: Record<string, any>) => {
       isActive: true,
       regApproval: true,
     },
-  })
+  });
   if (user) {
-    console.log("new user{} → ", user)
+    console.log("new user{} → ", user);
     const user_app = {
       id: user.id,
       email: user.email,
@@ -100,19 +100,19 @@ export const createNewUser = async (values: Record<string, any>) => {
       role: lookupValToApp(LF.UserRole, user.role),
       isActive: user.isActive,
       regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
-    }
-    return user_app
+    };
+    return user_app;
   }
-  return user //if no user
-}
+  return user; //if no user
+};
 
 export const getUsers = async (): Promise<GotUser[] | {}> => {
   const users = await prisma.users.findMany({
     where: activeRowCriteria,
     select: merge(identityFields, infoFields, privilegeFields, metaFields),
-  })
+  });
   if (users) {
-    console.log("users {} → ", users)
+    console.log("users {} → ", users);
     let users_app = await Promise.all(
       users.map(async (user) => {
         return {
@@ -121,36 +121,36 @@ export const getUsers = async (): Promise<GotUser[] | {}> => {
           role: lookupValToApp(LF.UserRole, user.role),
           regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
           createdBy: await lookupValAsyncToApp(LFA.User, user.createdBy),
-        }
-      }),
-    )
-    console.log("users_app → ", users_app)
-    return users_app
+        };
+      })
+    );
+    console.log("users_app → ", users_app);
+    return users_app;
   }
-  return {}
-}
+  return {};
+};
 
 export const getUserExistanceByEmail = async (email: string) => {
   const user = await prisma.users.findFirst({
     where: merge({ email: email }, activeRowCriteria),
     select: identityFields,
-  })
-  return user
-}
+  });
+  return user;
+};
 
 export const getUserExistanceById = async (id: string) => {
   const user = await prisma.users.findFirst({
     where: merge({ id: id }, activeRowCriteria),
     select: identityFields,
-  })
-  return user
-}
+  });
+  return user;
+};
 
 export const getUserAuthenticationByEmail = async (email: string) => {
   const user = await prisma.users.findFirst({
     where: merge({ email: email }, activeRowCriteria),
     select: merge(identityFields, privilegeFields, credentialFields),
-  })
+  });
   let user_app = {
     id: "",
     email: "",
@@ -160,7 +160,7 @@ export const getUserAuthenticationByEmail = async (email: string) => {
     regApproval: "",
     salt: "",
     password: "",
-  }
+  };
   if (user) {
     if (user.salt) {
       user_app = {
@@ -169,7 +169,7 @@ export const getUserAuthenticationByEmail = async (email: string) => {
         // requestedRole: UserRoleToApp(user.requestedRole),
         requestedRole: lookupValToApp(
           LF.UserRole,
-          user.requestedRole,
+          user.requestedRole
         ) as unknown as string,
         // role: UserRoleToApp(user.role),
         role: lookupValToApp(LF.UserRole, user.role) as unknown as string,
@@ -177,42 +177,42 @@ export const getUserAuthenticationByEmail = async (email: string) => {
         // regApproval: UserRoleToApp(user.regApproval),
         regApproval: lookupValToApp(
           LF.UserApproval,
-          user.regApproval,
+          user.regApproval
         ) as unknown as string,
         salt: user.salt,
         password: user.password,
-      }
+      };
     }
   }
-  return user_app
-}
+  return user_app;
+};
 
 export const saveRefreshToken = async (
   refreshToken: string,
-  userId: string,
+  userId: string
 ) => {
   const token = await prisma.tokens.create({
     data: { refreshToken, userId },
     select: { refreshToken: true, userId: true },
-  })
-  return token
-}
+  });
+  return token;
+};
 
 export const getUserByRefreshToken = async (refreshToken: string) => {
   // find refreshToken in Tokens table
   const foundUser = await prisma.tokens.findUnique({
     where: { refreshToken: refreshToken },
     select: { userId: true, refreshToken: true },
-  })
+  });
 
   if (!foundUser) {
-    return null
+    return null;
   }
 
   const user = await prisma.users.findFirst({
     where: merge({ id: foundUser.userId }, activeRowCriteria),
     select: merge(identityFields, privilegeFields),
-  })
+  });
 
   // convert role, requestedRole and regApproval (number) into
   // meaning full string value
@@ -223,7 +223,7 @@ export const getUserByRefreshToken = async (refreshToken: string) => {
     role: "",
     isActive: false,
     regApproval: "",
-  }
+  };
   if (user) {
     user_app = {
       id: user.id,
@@ -231,7 +231,7 @@ export const getUserByRefreshToken = async (refreshToken: string) => {
       // requestedRole: UserRoleToApp(user.requestedRole),
       requestedRole: lookupValToApp(
         LF.UserRole,
-        user.requestedRole,
+        user.requestedRole
       ) as unknown as string,
       // role: UserRoleToApp(user.role),
       role: lookupValToApp(LF.UserRole, user.role) as unknown as string,
@@ -239,12 +239,12 @@ export const getUserByRefreshToken = async (refreshToken: string) => {
       // regApproval: UserApprovalToApp(user.regApproval),
       regApproval: lookupValToApp(
         LF.UserApproval,
-        user.regApproval,
+        user.regApproval
       ) as unknown as string,
-    }
+    };
   }
-  return user_app
-}
+  return user_app;
+};
 
 // CAUTION!!!
 // dELETE = hard delete (delete record from table)
@@ -254,27 +254,27 @@ export const getUserByRefreshToken = async (refreshToken: string) => {
 export const dELETEAllRefreshToken = async (userId: string) => {
   const tokensDeleted = await prisma.tokens.deleteMany({
     where: { userId: userId },
-  })
+  });
 
-  return tokensDeleted
-}
+  return tokensDeleted;
+};
 
 // delete a refreshToken
 export const dELETERefreshToken = async (token: string) => {
   const tokenDeleted = await prisma.tokens.delete({
     where: { refreshToken: token },
-  })
+  });
 
-  return tokenDeleted
-}
+  return tokenDeleted;
+};
 
 export const getUserRegApprovalAllRoles = async (
-  status: UserApproval,
+  status: UserApproval
 ): Promise<GotUser[] | {}> => {
   const users = await prisma.users.findMany({
     where: merge({ regApproval: status }, activeRowCriteria),
     select: merge(identityFields, infoFields, privilegeFields, metaFields),
-  })
+  });
   if (users) {
     let users_app = await Promise.all(
       users.map(async (user) => {
@@ -284,22 +284,22 @@ export const getUserRegApprovalAllRoles = async (
           role: lookupValToApp(LF.UserRole, user.role),
           regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
           createdBy: lookupValAsyncToApp(LFA.User, user.createdBy),
-        }
-      }),
-    )
-    return users_app
+        };
+      })
+    );
+    return users_app;
   }
-  return users
-}
+  return users;
+};
 
 export const getUserRegApprovalByRequestedRole = async (
   status: UserApproval,
-  requestedRole: UserRole,
+  requestedRole: UserRole
 ): Promise<GotUser[] | {}> => {
   const users = await prisma.users.findMany({
     where: merge({ regApproval: status, requestedRole }, activeRowCriteria),
     select: merge(identityFields, infoFields, privilegeFields, metaFields),
-  })
+  });
   if (users) {
     let users_app = await Promise.all(
       users.map((user) => {
@@ -309,10 +309,10 @@ export const getUserRegApprovalByRequestedRole = async (
           role: lookupValToApp(LF.UserRole, user.role),
           regApproval: lookupValToApp(LF.UserApproval, user.regApproval),
           createdBy: lookupValAsyncToApp(LFA.User, user.createdBy),
-        }
-      }),
-    )
-    return users_app
+        };
+      })
+    );
+    return users_app;
   }
-  return {}
-}
+  return {};
+};

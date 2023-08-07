@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "nodemon"
   },
   "keywords": [],
@@ -20,7 +20,9 @@
     "@types/lodash": "^4.14.194",
     "@types/node": "^20.1.0",
     "prisma": "^4.14.1",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.7",
+    "tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
     "@prisma/client": "^4.14.1",

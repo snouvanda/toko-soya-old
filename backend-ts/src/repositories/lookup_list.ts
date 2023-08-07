@@ -1,4 +1,4 @@
-import { LookupList } from "../types/custom"
+import { LookupList } from "@/types/custom";
 
 // DO NOT CHANGE THIS. it uses to save roles to db valid values
 export const USER_ROLES: LookupList = {
@@ -9,15 +9,15 @@ export const USER_ROLES: LookupList = {
   Customer: 5,
   Shipper: 6,
   Supplier: 7,
-}
+};
 
 export const USER_APPROVAL: LookupList = {
   Pending: 0,
   Approved: 1,
   Denied: 4,
-}
+};
 
 export const TRANSACTION: LookupList = {
   Beli: 1,
   Pinjam: 2,
-}
+};
