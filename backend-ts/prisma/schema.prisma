@@ -230,7 +230,7 @@ model StockAccounts {
 
 model Procurements {
   id            Int       @id @default(autoincrement())
-  trxDate       DateTime  @default(now()) @db.Date
+  trxDate       DateTime  @default(now())
   sqc           Int       @default(1)
   supplierId    String    @db.VarChar(10)
   transaction   Int       @default(1) // ref: enum ProcurementTrx
@@ -270,7 +270,7 @@ model Procurements {
 
 model ProcurementReturns {
   id            Int       @id @default(autoincrement())
-  trxDate       DateTime  @default(now()) @db.Date
+  trxDate       DateTime  @default(now())
   sqc           Int       @default(1)
   procurementId Int
   supplierId    String    @db.VarChar(10)
@@ -299,7 +299,7 @@ model ProcurementReturns {
 
 model SalesOrders {
   id            Int       @id @default(autoincrement())
-  trxDate       DateTime  @default(now()) @db.Date
+  trxDate       DateTime  @default(now())
   sqc           Int       @default(1)
   customerId    String    @db.VarChar(10)
   account       Int // ref: table StockAccounts.id
@@ -336,7 +336,7 @@ model SalesOrders {
 
 model SalesReturns {
   id           Int       @id @default(autoincrement())
-  trxDate      DateTime  @default(now()) @db.Date
+  trxDate      DateTime  @default(now())
   sqc          Int       @default(1)
   salesOrderId Int
   customerId   String    @db.VarChar(10)
@@ -365,7 +365,7 @@ model SalesReturns {
 
 model Shipments {
   id            Int       @id @default(autoincrement())
-  trxDate       DateTime  @default(now()) @db.Date
+  trxDate       DateTime  @default(now())
   sqc           Int       @default(1)
   shipperId     String    @db.VarChar(10)
   reg_plate     String    @db.VarChar(15)
@@ -397,7 +397,7 @@ model Shipments {
 
 model StockAdjustments {
   id          Int       @id @default(autoincrement())
-  trxDate     DateTime  @default(now()) @db.Date
+  trxDate     DateTime  @default(now())
   sqc         Int       @default(1)
   transaction Int       @default(1) // ref: enum StockAdjustmentTrx
   account     Int // ref: table StockAccounts.id
@@ -423,7 +423,7 @@ model StockAdjustments {
 
 model InventoryJournalLogical {
   id           Int       @id @default(autoincrement())
-  trxDate      DateTime  @default(now()) @db.Date
+  trxDate      DateTime  @default(now())
   sqc          Int       @default(1)
   transaction  Int       @default(1) // ref: enum StockAdjustmentTrx
   account      Int // ref: table StockAccounts.id
@@ -454,7 +454,7 @@ model InventoryJournalLogical {
 
 model InventoryJournalPhysical {
   id           Int       @id @default(autoincrement())
-  trxDate      DateTime  @default(now()) @db.Date
+  trxDate      DateTime  @default(now())
   sqc          Int       @default(1)
   transaction  Int       @default(1) // ref: enum StockAdjustmentTrx
   account      Int // ref: table StockAccounts.id
@@ -489,6 +489,14 @@ model InventoryJournalPhysical {
 // At-----------: 
 // Description--: 
 // 
+
+// MigrationName: remove-@db.Date-from-trxDate
+// At-----------: 
+// Description--: 
+// remove @db.Date from trxDate from all tables with trxDate with it.
+// Experienced error invalid default value for trxDate in other newer version
+// of mysql. Have tried to change sql-mode but not working. This working here
+// maybe because configuration by xampp.
 
 // MigrationName: add-metafields-into-stockaccounts-table
 // At-----------: 
